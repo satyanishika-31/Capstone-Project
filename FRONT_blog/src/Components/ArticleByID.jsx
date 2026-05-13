@@ -16,6 +16,7 @@ import {
   articleActions,
   editBtn,
   deleteBtn,
+  primaryBtn,
   loadingClass,
   errorClass,
   inputClass,
@@ -134,7 +135,7 @@ function ArticleByID() {
         <h1 className={`${articleMainTitle} uppercase`}>{article.title}</h1>
 
         <div className={articleAuthorRow}>
-          <div className={authorInfo}>✍️ {article.author?.firstName || "Author"}</div>
+          <div className={authorInfo}>By {article.author?.firstName || "Author"}</div>
 
           <div>{formatDate(article.createdAt)}</div>
         </div>
@@ -158,15 +159,15 @@ function ArticleByID() {
       {/* form to add comment if role is USER */}
       {/* USER actions */}
       {user?.role === "USER" && (
-        <div className={articleActions}>
-          <form onSubmit={handleSubmit(addComment)}>
+        <div className="mt-10 rounded-2xl border border-[#e5e5e5] bg-[#fafafa] p-5 shadow-sm">
+          <form onSubmit={handleSubmit(addComment)} className="flex flex-col gap-3 sm:flex-row">
             <input
               type="text"
               {...register("comment")}
               className={inputClass}
               placeholder="Write your comment here..."
             />
-            <button type="submit" className="bg-amber-600 text-white px-5 py-2 rounded-2xl mt-5">
+            <button type="submit" className={`${primaryBtn} shrink-0`}>
               Add comment
             </button>
           </form>

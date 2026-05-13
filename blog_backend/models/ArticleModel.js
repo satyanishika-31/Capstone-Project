@@ -28,8 +28,8 @@ const ArticleSchema=new Schema({
 		type:String,
 		required:[true,"content is required"],
 	},
-	comment:[{type:commentSchema,default:[]}],
-	isArticleActtive:{
+	comments:[commentSchema],
+	isArticleActive:{
      type:Boolean,
 	 default:true
 }

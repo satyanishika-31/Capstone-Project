@@ -1,4 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
+import { useEffect } from "react";
+import { useAuth } from "./Store/authStore";
 import RootLayout from "./Components/RootLayout";
 import Home from "./Components/Home";
 import Register from "./Components/Register";
@@ -8,8 +10,15 @@ import AuthorProfile from "./Components/AutherProfile";
 import AuthorArticles from "./Components/AuthorArticles";
 import WriteArticles from "./Components/WriteArticles";
 import ArticleByID from "./Components/ArticleByID";
+import EditArticle from "./Components/EditArticle";
 
 function App() {
+  const initializeAuth = useAuth((state) => state.initializeAuth);
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
   const routerObj = createBrowserRouter([
     {
       path: "/",
@@ -56,7 +65,7 @@ function App() {
         },
         {
           path: "edit-article",
-          element: <WriteArticles />,
+          element: <EditArticle />,
         },
       ],
     },

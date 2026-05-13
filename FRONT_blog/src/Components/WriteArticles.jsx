@@ -15,14 +15,12 @@ import {
   errorClass,
   loadingClass,
 } from "../Styles/Common";
-import { useAuth } from "../Store/authStore";
 import { API_BASE_URL } from "../config/api";
 
 function WriteArticles() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
-  const currentUser = useAuth((state) => state.currentUser);
 
   const {
     register,
@@ -35,15 +33,13 @@ function WriteArticles() {
     setLoading(true);
     setApiError(null);
 
-    //add authorId to articleObj
-    articleObj.author = currentUser._id;
     try {
       //make POST req to save new article
       let res = await axios.post(`${API_BASE_URL}/author-api/article`, articleObj, { withCredentials: true });
       //navigate to AuthorArticles
       if (res.status === 201) {
         toast.success(res.data?.message || "Article published successfully");
-        navigate("../articles");
+        navigate("/author-profile/articles");
       }
     } catch (err) {
       const msg = err.response?.data?.error || err.response?.data?.message || "Failed to publish article";

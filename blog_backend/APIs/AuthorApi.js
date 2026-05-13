@@ -1,29 +1,33 @@
 import exp from 'express'
+import mongoose from 'mongoose'
 import { UserModel } from '../models/UserModel.js'
 import { ArticleModel } from '../models/ArticleModel.js'
 import { verifyToken } from '../middleware/VerifyToken.js'
 
 export const authorApp = exp.Router()
 
+const ensureDbConnected = (res) => {
+  if (mongoose.connection.readyState !== 1) {
+    res.status(503).json({ message: "Database is not connected. Check DB_URL and restart the backend." })
+    return false
+  }
+
+  return true
+}
 
 //write article
 authorApp.post('/article', verifyToken("AUTHOR"), async (req, res) => {
-
-  const articleObj = req.body
+  if (!ensureDbConnected(res)) return
 
   //get author id from token
   const authorIdOfToken = req.user?.id
+  const articleObj = { ...req.body, author: authorIdOfToken }
 
   //check author
-  let author = await UserModel.findOne({_id: articleObj.author, isUserActive: true})
+  let author = await UserModel.findOne({_id: authorIdOfToken, isUserActive: true})
 
   if (!author) {
     return res.status(404).json({ message: "Author not found" })
-  }
-
-  //check if logged-in author matches
-  if (author._id.toString() !== authorIdOfToken) {
-    return res.status(403).json({ message: "You are not authorised" })
   }
 
   //create article
@@ -38,6 +42,7 @@ authorApp.post('/article', verifyToken("AUTHOR"), async (req, res) => {
 
 //get articles
 authorApp.get('/article', verifyToken("AUTHOR"), async (req, res) => {
+  if (!ensureDbConnected(res)) return
 
   const authorIdOfToken = req.user?.id
 
@@ -54,7 +59,8 @@ authorApp.get('/article', verifyToken("AUTHOR"), async (req, res) => {
 
 
 //edit article
-authorApp.put("/article",async (req, res) => {
+authorApp.put("/article", verifyToken("AUTHOR"), async (req, res) => {
+  if (!ensureDbConnected(res)) return
 
   const authorIdOfToken = req.user?.id
 
@@ -80,12 +86,15 @@ authorApp.put("/article",async (req, res) => {
 })
 //de;llection soft delition
 authorApp.patch("/article",verifyToken("AUTHOR"),async(req,res)=>{
+    if (!ensureDbConnected(res)) return
 //get author id from decodedToken
     const authorIdOfToken=req.user?.id
     //get modifies article from client
     const {articleId,isArticleActive}=req.body
     //get article by id
     const articleOfDB=await ArticleModel.findOne({_id:articleId,author:authorIdOfToken})
+    if(!articleOfDB)
+        return res.status(404).json({message:"Article not found"})
     //check status
     if(isArticleActive===articleOfDB.isArticleActive)
         return res.status(200).json({message:"Article already in the same state"})

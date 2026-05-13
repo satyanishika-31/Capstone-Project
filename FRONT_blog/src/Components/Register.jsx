@@ -9,12 +9,11 @@ import {
   pageBackground,
   submitBtn,
   mutedText,
-} from "../Styles/Common.jsx";
+} from "../styles/common";
 import { useForm } from "react-hook-form";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router";
 import { API_BASE_URL } from "../config/api";
 
 function Register() {
@@ -25,20 +24,39 @@ function Register() {
   } = useForm();
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
+  const [preview, setPriview] = useState(null);
   const navigate = useNavigate();
+
+  const fileToDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Failed to read profile image"));
+      reader.readAsDataURL(file);
+    });
 
   //When user registration submitted
   const onUserRegister = async (userObj) => {
-    console.log(userObj);
+    const profileFile = userObj.profileImageUrl?.[0];
+    const profileImageUrl = profileFile ? await fileToDataUrl(profileFile) : "";
+    const payload = {
+      role: userObj.role,
+      firstName: userObj.firstName,
+      lastName: userObj.lastName || "",
+      email: userObj.email,
+      password: userObj.password,
+      profileImageUrl,
+    };
+
     try {
       //start loading
       setLoading(true);
-      setApiError(null);
-      //make http post req to create user in backend
-      let res = await axios.post(`${API_BASE_URL}/auth/users`, userObj);
-      //navigate to login
-      if (res.status >= 200 && res.status < 300) {
-        navigate("/login", { replace: true });
+      //make HTTP POST req to create User in backend
+      let res = await axios.post(`${API_BASE_URL}/auth/users`, payload, { withCredentials: true });
+
+      if (res.status === 201) {
+        //navigate to Login
+        navigate("/login");
       }
     } catch (err) {
       console.log("err in registration", err);
@@ -165,14 +183,42 @@ function Register() {
           <div className={formGroup}>
             <label className={labelClass}>Profile Image</label>
 
-            <input type="text" accept="image/png, image/jpeg" {...register("profileImageUrl")} />
+            <input
+              type="file"
+              className={inputClass}
+              accept="image/png, image/jpeg"
+              {...register("profileImageUrl", {
+                validate: {
+                  fileType: (files) => {
+                    if (!files?.[0]) return true;
+                    return ["image/png", "image/jpeg"].includes(files[0].type) || "Only JPG/PNG allowed";
+                  },
+                  fileSize: (files) => {
+                    if (!files?.[0]) return true;
+                    return files[0].size <= 2 * 1024 * 1024 || "MAx size 2MB";
+                  },
+                },
+              })}
+              onChange={(event) => {
+                let file = event.target.files[0];
+                if (file) {
+                  setPriview(URL.createObjectURL(file));
+                }
+              }}
+            />
 
             {errors.profileImageUrl && <p className={errorClass}>{errors.profileImageUrl.message}</p>}
+            {/* image preview */}
+            {preview && (
+              <div className="mt-3 flex justify-center">
+                <img src={preview} alt="" className="w-24 h-24 rounded-full object-cover" />
+              </div>
+            )}
           </div>
 
           {/* SUBMIT */}
-          <button type="submit" className={submitBtn} disabled={loading}>
-            {loading ? "Creating Account..." : "Create Account"}
+          <button type="submit" className={submitBtn}>
+            Create Account
           </button>
         </form>
 

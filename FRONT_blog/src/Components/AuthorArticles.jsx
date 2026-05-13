@@ -81,7 +81,7 @@ function AuthorArticles() {
             <p className={articleExcerpt}>{article.content.slice(0, 60)}...</p>
           </div>
 
-          <button className={`${ghostBtn} mt-auto pt-4`} onClick={() => openArticle(article)}>
+          <button className={`${ghostBtn} mt-auto pt-4 text-left`} onClick={() => openArticle(article)}>
             Read Article →
           </button>
         </div>

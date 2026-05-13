@@ -1,6 +1,6 @@
 import exp from 'express'
 import { config } from 'dotenv'
-import { connect } from 'mongoose'
+import mongoose from 'mongoose'
 import { userApp } from './APIs/UserApi.js'
 import { articleApp } from './APIs/ArticleApi.js'
 import { adminApp } from './APIs/AdminApi.js'
@@ -33,6 +33,14 @@ app.use(cors({
 app.use(cookieParser())
 app.use(exp.json())
 
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    message: "API is running",
+    dbConnected: mongoose.connection.readyState === 1,
+    dbName: mongoose.connection.name || null,
+  })
+})
+
 //path level middleware
 app.use("/user-api", userApp)
 app.use("/article-api", articleApp)
@@ -41,25 +49,28 @@ app.use("/author-api", authorApp)
 app.use("/auth", commonApp)
 
 
-//connect to DB
-const connectDB = async () => {
-  try {
+// Start the API even if DB is unavailable so local development can continue.
+const startServer = async () => {
+  const PORT = process.env.PORT || 5000
 
-    await connect(process.env.DB_URL)
-    console.log('Connected to DB')
-
-    const PORT = process.env.PORT || 5000
-
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`)
-    })
-
-  } catch (err) {
-    console.log("DB connection error:", err)
+  const dbUrl = process.env.DB_URL
+  if (!dbUrl) {
+    console.log('DB_URL is not set. Starting server without DB connection.')
+  } else {
+    try {
+      await mongoose.connect(dbUrl)
+      console.log('Connected to DB')
+    } catch (err) {
+      console.log('DB connection error. Continuing without DB:', err.message)
+    }
   }
+
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`)
+  })
 }
 
-connectDB()
+startServer()
 
 
 //invalid path middleware
