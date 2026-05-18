@@ -64,7 +64,7 @@ commonApp.post('/login',async(req,res) => {
     if(!isMatched)
         return res.status(400).json({message:"Invalid password"})
     //create jwt
-    const signedToken=sign({id:user._id,email:email,role:user.role},process.env.SECRET_KEY,{expiresIn:"1hr"})
+    const signedToken=sign({id:user._id,email:email,role:user.role},process.env.SECRET_KEY,{expiresIn:"1h"})
     //set token to res header as httpOnly
     res.cookie("token",signedToken,cookieOptions)
     //remove password from user document
