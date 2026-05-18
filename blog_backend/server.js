@@ -13,7 +13,7 @@ config()
 
 const app = exp()
 
-const defaultOrigins = ['http://localhost:5173', 'http://localhost:5174','capstone-project-mu-umber.vercel.app']
+const defaultOrigins = ['http://localhost:5173', 'http://localhost:5174','http://capstone-project-mu-umber.vercel.app']
 const envOrigins = process.env.FRONTEND_URLS
   ? process.env.FRONTEND_URLS.split(',').map((url) => url.trim()).filter(Boolean)
   : []
